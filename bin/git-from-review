@@ -1,0 +1,115 @@
+#!/bin/bash
+# The git-from-review command.
+
+OPTS_SPEC="\
+git from-review [<options>] <change>[/<patchset>] [<branch>]
+
+Retrieves a change from code-review into a branch.
+--
+v,verbose           be more verbose
+q,quiet             be more quiet
+n,dry-run           dry run
+remote=!            remote name
+u,set-upstream-to=! set upstream branch for further submissions
+f,force             allow forced updated of branch
+"
+eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
+
+die () {
+    printf >&2 '%s\n' "$*"
+    exit 1
+}
+
+warn () {
+    echo >&2 "Warning:" "$@"
+}
+
+verbosity=
+dry_run=
+remote=
+upstream=
+force=false
+while :
+do
+    case $1 in
+    -q)
+        verbosity="$verbosity -q" ;;
+    -v)
+        verbosity="$verbosity -v" ;;
+    -n)
+        dry_run=--dry-run ;;
+    --no-dry-run)
+        dry_run= ;;
+    --remote)
+        shift
+        remote="$1" ;;
+    -u)
+        shift
+        upstream="$1" ;;
+    -f)
+        force=true ;;
+    --no-force)
+        force=false ;;
+    --)
+        shift ; break ;;
+    *)
+        die "Invalid parameter $1" ;;
+    esac
+    shift
+done
+
+change=$1
+shift
+if [[ "$change" =~ ([0-9]+)(/([0-9]+))? ]]; then
+    number=${BASH_REMATCH[1]}
+    patchset=${BASH_REMATCH[3]:-1}
+else
+    die "Invalid change number"
+fi
+suffix=${number: -2}
+if [ "${#suffix}" == 1 ]; then
+    suffix=0${suffix}
+fi
+refspec="refs/changes/$suffix/$number/$patchset"
+
+branch=
+if [ $# != 0 ]; then
+    branch=$1
+    shift
+    branch=${branch#refs/heads/}
+    ref=$(git check-ref-format --normalize "refs/heads/$branch") || die "Invalid branch name '$branch'."
+fi
+
+[ $# != 0 ] && die "Too many arguments"
+
+if [ -n "$branch" ]; then
+    if [ -z "$remote" ]; then
+        remote=`git config --get "branch.$branch.remote" 2>/dev/null`
+        if [ "$remote" == "." ]; then
+            echo >&2 "Branch $branch tracks another local branch."
+            die "Specify remote repository with --remote=..."
+        fi
+    fi
+    refspec="${refspec}:${branch}"
+fi
+if [ -z "$remote" ]; then
+    remote="origin"
+fi
+if ! git remote | grep -q "^$remote$"; then
+    die "Invalid remote: $remote"
+fi
+if [[ -n "$upstream" && "$upstream" != "$remote"/* ]]; then
+    upstream="$remote/$upstream"
+fi
+
+if [ -n "$dry_run" ]; then
+    echo "Would fetch patchset $patchset of change $number from $remote into ${branch:-FETCH_HEAD}"
+fi
+git fetch $verbosity $dry_run "$remote" "$refspec" || die
+if [ -n "$branch" -a -n "$upstream" ]; then
+    if [ -n "$dry_run" ]; then
+        echo "Would set up branch $branch to track remote branch $upstream from $remote"
+    else
+        git branch $verbosity "--set-upstream-to=$upstream" "$branch" || die "Cannot set upstream for $branch"
+    fi
+fi

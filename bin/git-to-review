@@ -152,7 +152,7 @@ fi
 
 if [ "$dry_run" == "-n" ]; then
     if [ "$set_upstream" == true ]; then
-        echo "Would set upstream of branch $branch_short to $repo/$remote_branch"
+        echo "Would set up branch $branch_short to track remote branch $remote_branch from $repo"
     fi
     echo "Would push to $repo $ahead $changes from $commit to refs/$mode/$remote_branch"
 else
