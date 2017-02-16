@@ -8,23 +8,54 @@ _git_to_review () {
             return
             ;;
         --for)
-            __gitcomp_nl "$(__git_refs)" ""
+            __gitcomp_nl "$(__git_heads)" ""
             return
             ;;
     esac
     case "$cur" in
         --remote=*)
-            __gitcomp_nl "$(__git_remotes)" "" "${cur##--repo=}"
+            __gitcomp_nl "$(__git_remotes)" "" "${cur##--remote=}"
             return
             ;;
         --for=*)
-            __gitcomp_nl "$(__git_refs)" "" "${cur##--for=}"
+            __gitcomp_nl "$(__git_heads)" "" "${cur##--for=}"
             return
             ;;
         --*)
             __gitcomp "
             --verbose --quiet --dry-run --draft --remote= --for= --set-upstream
             --force --no-verify
+            "
+            return
+            ;;
+    esac
+    __gitcomp_nl "$(__git_heads)"
+}
+
+_git_from_review () {
+    case "$prev" in
+        --remote)
+            __gitcomp_nl "$(__git_remotes)"
+            return
+            ;;
+        -u|--set-upstream-to)
+            __gitcomp_nl "$(__git_heads)" ""
+            return
+            ;;
+    esac
+    case "$cur" in
+        --remote=*)
+            __gitcomp_nl "$(__git_remotes)" "" "${cur##--remote=}"
+            return
+            ;;
+        --set-upstream-to=*)
+            __gitcomp_nl "$(__git_heads)" "" "${cur##--set-upstream-to=}"
+            return
+            ;;
+        --*)
+            __gitcomp "
+            --verbose --quiet --dry-run --remote= --set-upstream-to
+            --force
             "
             return
             ;;
