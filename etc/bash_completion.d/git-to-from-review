@@ -1,4 +1,7 @@
-_git_submit () {
+# Bash completion script for git-to-review and git-from-review commands.
+# Author: André Berti Sassi <asassi@cpqd.com.br>
+
+_git_to_review () {
     case "$prev" in
         --remote)
             __gitcomp_nl "$(__git_remotes)"

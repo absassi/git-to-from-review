@@ -1,7 +1,8 @@
 #!/bin/bash
+# The git-to-review command.
 
 OPTS_SPEC="\
-git submit [<options>] [<commit>]
+git to-review [<options>] [<commit>]
 
 Submits a branch to code-review for the branch it tracks.
 --
