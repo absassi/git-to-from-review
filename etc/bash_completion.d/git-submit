@@ -1,0 +1,30 @@
+_git_submit () {
+    case "$prev" in
+        --remote)
+            __gitcomp_nl "$(__git_remotes)"
+            return
+            ;;
+        --for)
+            __gitcomp_nl "$(__git_refs)" ""
+            return
+            ;;
+    esac
+    case "$cur" in
+        --remote=*)
+            __gitcomp_nl "$(__git_remotes)" "" "${cur##--repo=}"
+            return
+            ;;
+        --for=*)
+            __gitcomp_nl "$(__git_refs)" "" "${cur##--for=}"
+            return
+            ;;
+        --*)
+            __gitcomp "
+            --verbose --quiet --dry-run --draft --remote= --for= --set-upstream
+            --force --no-verify
+            "
+            return
+            ;;
+    esac
+    __gitcomp_nl "$(__git_heads)"
+}

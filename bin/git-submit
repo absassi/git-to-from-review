@@ -1,0 +1,162 @@
+#!/bin/bash
+
+OPTS_SPEC="\
+git submit [<options>] [<commit>]
+
+Submits a branch to code-review for the branch it tracks.
+--
+v,verbose           be more verbose
+q,quiet             be more quiet
+n,dry-run           dry run
+d,draft             submit as draft
+remote=!            remote name
+for=!               branch to submit for review
+u,set-upstream      set upstream for further submissions
+f,force             allow submitting multiple changes
+no-verify           do not run pre-push hook
+"
+eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
+
+die () {
+    printf >&2 '%s\n' "$*"
+    exit 1
+}
+
+warn () {
+    echo >&2 "Warning:" "$@"
+}
+
+dry_run=
+mode="for"
+set_upstream=false
+force=false
+no_verify=
+while :
+do
+    case $1 in
+    -q)
+        verbosity="$verbosity -q" ;;
+    -v)
+        verbosity="$verbosity -v" ;;
+    -n)
+        dry_run=-n ;;
+    --no-dry-run)
+        dry_run= ;;
+    --remote)
+        shift
+        repo="$1" ;;
+    -d)
+        mode="drafts" ;;
+    --no-draft)
+        mode="for" ;;
+    --for)
+        shift
+        remote_branch="$1" ;;
+    -u)
+        set_upstream=true ;;
+    --no-set-upstream)
+        set_upstream=false ;;
+    -f)
+        force=true ;;
+    --no-force)
+        force=false ;;
+    --no-verify)
+        no_verify="--no-verify" ;;
+    --)
+        shift ; break ;;
+    *)
+        die "Invalid parameter $1" ;;
+    esac
+    shift
+done
+
+commit=${1:-HEAD}
+shift
+if ! git rev-parse --verify "$commit^0" -- > /dev/null 2>&1; then
+    die "Invalid reference: $commit"
+fi
+
+[ $# != 0 ] && die "Too many arguments"
+
+branch=`git rev-parse --symbolic-full-name "$commit"`
+case $branch in
+refs/heads/*)
+    branch_short=`basename "$branch"`
+    if [ -z "$remote_branch" ]; then
+        remote_branch=`git config --get "branch.$branch_short.merge"`
+        if [ -z "$remote_branch" ]; then
+            echo "There is no tracking information for branch $branch_short."
+            echo "If you wish to set tracking information for this branch you can do so with:"
+            echo "    git submit --for=<branch> --set-upstream $repo $branch"
+            echo ""
+            echo "Otherwise, to submit for review without setting tracking information, use:"
+            echo "    git submit --remote=<remote> --for=<branch> $branch"
+            echo ""
+            exit 1
+        fi
+    fi
+    if [ -z "$repo" ]; then
+        repo=`git config --get "branch.$branch_short.remote"`
+        [ "$repo" == "." ] && die "Cannot submit for review, because branch $branch_short tracks another local branch."
+    fi
+    ;;
+*)
+    [ -z "$remote_branch" ] && die "Cannot determine the remote branch to submit to. Use --for=<branch>."
+    [ "$set_upstream" == true ] && die "Cannot set upstream without a branch."
+    ;;
+esac
+
+if [ -z "$repo" ]; then
+    repo="origin"
+fi
+if ! git remote | grep -q "^$repo$"; then
+    die "Invalid remote: $repo"
+fi
+
+case $remote_branch in
+refs/heads/*)
+    remote_branch=`basename $remote_branch` ;;
+*/*)
+    die "Cannot submit for review to branch $remote_branch" ;;
+esac
+
+if ! git rev-parse -q --verify "refs/remotes/$repo/$remote_branch^0" -- > /dev/null; then
+    die "Invalid remote branch: $repo/$remote_branch"
+fi
+
+changes="change"
+ahead=$(git rev-list --first-parent --count "$repo/$remote_branch..$commit")
+behind=$(git rev-list --first-parent --count "$commit..$repo/$remote_branch")
+merges=$(git rev-list --first-parent --merges --count "$repo/$remote_branch..$commit")
+if [ "$ahead" == 0 ]; then
+    die "No changes to submit."
+elif [ "$ahead" != 1 ]; then
+    if [ "$force" == true ]; then
+        if [ "$verbosity" == "${verbosity%-q}" ]; then
+            warn "Submitting $ahead changes at once."
+        fi
+    else
+        die "To submit $ahead changes at once, use --force."
+    fi
+    changes="changes"
+fi
+if [ "$verbosity" == "${verbosity%-q}" ]; then
+    if [ "$behind" != 0 ]; then
+        warn "Submitting $changes outdated by $behind commits."
+    fi
+    if [ "$merges" != 0 ]; then
+        warn "Submitting $merges merge commit(s)."
+    fi
+fi
+
+if [ "$dry_run" == "-n" ]; then
+    if [ "$set_upstream" == true ]; then
+        echo "Would set upstream of branch $branch_short to $repo/$remote_branch"
+    fi
+    echo "Would push to $repo $ahead $changes from $commit to refs/$mode/$remote_branch"
+else
+    if [ "$set_upstream" == true ]; then
+        git branch $verbosity "--set-upstream-to=$repo/$remote_branch" "$branch_short" || die "Cannot set upstream for $branch_short"
+    fi
+fi
+git push $verbosity $dry_run $no_verify $repo $commit:refs/$mode/$remote_branch
