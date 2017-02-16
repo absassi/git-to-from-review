@@ -10,7 +10,7 @@ v,verbose           be more verbose
 q,quiet             be more quiet
 n,dry-run           dry run
 remote=!            remote name
-u,set-upstream-to=! set upstream branch for further submissions
+u,set-upstream-to=! set upstream branch for further patch sets
 f,force             allow forced updated of branch
 "
 eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"

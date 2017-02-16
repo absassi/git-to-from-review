@@ -4,16 +4,16 @@
 OPTS_SPEC="\
 git to-review [<options>] [<commit>]
 
-Submits a branch to code-review for the branch it tracks.
+Send a branch to code-review for the branch it tracks.
 --
 v,verbose           be more verbose
 q,quiet             be more quiet
 n,dry-run           dry run
-d,draft             submit as draft
+d,draft             send as draft
 remote=!            remote name
 for=!               branch to submit for review
-u,set-upstream      set upstream for further submissions
-f,force             allow submitting multiple changes
+u,set-upstream      set upstream for further patch sets
+f,force             allow sending multiple changes
 no-verify           do not run pre-push hook
 "
 eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
