@@ -1,9 +1,14 @@
 # git-to-from-review
 
-Git to-review and from-review commands to integrate with Gerrit code review tool
-to simplify usage of fetch and push commands. Differently from aliases or custom
-refspec configurations, these commands work nicely with multiple remote branches
+Git to-review and from-review commands to integrate with
+[Gerrit code review](https://www.gerritcodereview.com/) tool to simplify usage
+of fetch and push commands. Differently from aliases or custom refspec
+configurations, these commands work nicely with multiple remote branches
 and repositories.
+
+These commands are inspired by the
+[git-gerrit](https://github.com/gnustavo/git-gerrit) and
+[git-review](https://github.com/openstack-infra/git-review) commands.
 
 ## Overview
 
