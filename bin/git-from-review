@@ -28,7 +28,7 @@ verbosity=
 dry_run=
 remote=
 upstream=
-force=false
+force=
 while :
 do
     case $1 in
@@ -47,9 +47,9 @@ do
         shift
         upstream="$1" ;;
     -f)
-        force=true ;;
+        force=+ ;;
     --no-force)
-        force=false ;;
+        force= ;;
     --)
         shift ; break ;;
     *)
@@ -62,7 +62,7 @@ change=$1
 shift
 if [[ "$change" =~ ([0-9]+)(/([0-9]+))? ]]; then
     number=${BASH_REMATCH[1]}
-    patchset=${BASH_REMATCH[3]:-1}
+    patchset=${BASH_REMATCH[3]:-\*}
 else
     die "Invalid change number"
 fi
@@ -90,7 +90,14 @@ if [ -n "$branch" ]; then
             die "Specify remote repository with --remote=..."
         fi
     fi
-    refspec="${refspec}:${branch}"
+    refspec="${force}${refspec}:refs/heads/${branch}"
+    if [ "$patchset" == "*" ]; then
+        refspec="${refspec}/*"
+    fi
+else
+    if [ "$patchset" == "*" ]; then
+        die "Cannot fetch all patch sets unless a branch name is specified"
+    fi
 fi
 if [ -z "$remote" ]; then
     remote="origin"
@@ -103,13 +110,28 @@ if [[ -n "$upstream" && "$upstream" != "$remote"/* ]]; then
 fi
 
 if [ -n "$dry_run" ]; then
-    echo "Would fetch patchset $patchset of change $number from $remote into ${branch:-FETCH_HEAD}"
+    if [ "$patchset" == "*" ]; then
+        echo "Would fetch all patch sets of change $number from $remote into ${branch}/*"
+    else
+        echo "Would fetch patch set $patchset of change $number from $remote into ${branch:-FETCH_HEAD}"
+    fi
 fi
 git fetch $verbosity $dry_run "$remote" "$refspec" || die
+
 if [ -n "$branch" -a -n "$upstream" ]; then
-    if [ -n "$dry_run" ]; then
-        echo "Would set up branch $branch to track remote branch $upstream from $remote"
+    if [ "$patchset" == "*" ]; then
+        if [ -n "$dry_run" ]; then
+            echo "Would set up branches $branch/* to track remote branch $upstream from $remote"
+        else
+            for b in $(git for-each-ref --format='%(refname:short)' "refs/heads/$branch/*"); do
+                git branch $verbosity "--set-upstream-to=$upstream" "$b" || warn "Cannot set upstream for $b"
+            done
+        fi
     else
-        git branch $verbosity "--set-upstream-to=$upstream" "$branch" || die "Cannot set upstream for $branch"
+        if [ -n "$dry_run" ]; then
+            echo "Would set up branch $branch to track remote branch $upstream from $remote"
+        else
+            git branch $verbosity "--set-upstream-to=$upstream" "$branch" || warn "Cannot set upstream for $branch"
+        fi
     fi
 fi

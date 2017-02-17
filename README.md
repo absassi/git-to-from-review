@@ -12,8 +12,9 @@ destination remote and branch is taken from branch tracking information or from
 the command line if tracking information is missing or something other than a
 branch is being sent.
 
-The `git from-review` command retrieves from Gerrit a patch set of some change,
-optionally creating or updating a branch pointing to the patch set commit.
+The `git from-review` command retrieves from Gerrit one or all patch sets of
+some change, optionally creating or updating branches pointing to the patch set
+commits.
 
 ## Installation
 
@@ -110,6 +111,28 @@ To create a branch `change` at the patch set 3 of change 1234, just type:
      * [new ref]         refs/changes/34/1234/3 -> change
 
 The remote name defaults to `origin` if unspecified.
+
+#### Retrieving all patch sets
+
+To retreive all patch sets from a change, don't specify the patch set number,
+but it is mandatory to specify a branch name prefix. For instance:
+
+    $ git from-review 1234 change
+    From ssh://gerrit.example.com:29418/project
+     * [new ref]         refs/changes/34/1234/1 -> change/1
+     * [new ref]         refs/changes/34/1234/2 -> change/2
+     * [new ref]         refs/changes/34/1234/3 -> change/3
+
+#### Without local branch
+
+To simply retrieve a patch set, without local branch creation, a patch set
+number must be specified:
+
+    $ git from-review 1234/3
+    From ssh://gerrit.example.com:29418/project
+     * [new ref]         refs/changes/34/1234/3 -> FETCH_HEAD
+
+This is equivalent to the first part of default Gerrit download commands.
 
 #### Create local branch with tracking information
 
