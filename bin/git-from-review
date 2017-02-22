@@ -77,7 +77,8 @@ if [ $# != 0 ]; then
     branch=$1
     shift
     branch=${branch#refs/heads/}
-    ref=$(git check-ref-format --normalize "refs/heads/$branch") || die "Invalid branch name '$branch'."
+    # --print is a deprecated way to spell --normalize, but supported in Git 1.7
+    ref=$(git check-ref-format --print "refs/heads/$branch") || die "Invalid branch name '$branch'."
 fi
 
 [ $# != 0 ] && die "Too many arguments"
