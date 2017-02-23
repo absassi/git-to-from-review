@@ -106,6 +106,9 @@ remote and branch to send to.
         -u, --set-upstream-to ...
                               set upstream branch for further patch sets
         -f, --force           allow forced updated of branch
+        -r, --rebase          rebase onto the fetched patch set
+        -c, --checkout        checkout the fetched patch set
+        -p, --cherry-pick     cherry-pick the fetched patch set
 
 #### Basic usage
 
@@ -153,3 +156,15 @@ information in order to amend the change and send a new patch set, type:
     $ git to-review
     To ssh://gerrit.example.com:29418/project
      * [new branch]      change -> refs/for/feature
+
+#### Performing some actions
+
+There is also the option to rebase onto, checkout or cherry-pick a fetched
+patch set. In this case, the branch name is optional, but the patch set number
+is mandatory. For instance, to download a patch set, create a branch and
+checkout it:
+
+    $ git from-review --checkout 1234/3 change
+    From ssh://gerrit.example.com:29418/project
+     * [new ref]         refs/changes/34/1234/3 -> change
+    Switched to branch 'change'

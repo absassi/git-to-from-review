@@ -12,6 +12,9 @@ n,dry-run           dry run
 remote=!            remote name
 u,set-upstream-to=! set upstream branch for further patch sets
 f,force             allow forced updated of branch
+r,rebase            rebase onto the fetched patch set
+c,checkout          checkout the fetched patch set
+p,cherry-pick       cherry-pick the fetched patch set
 "
 eval "$(echo "$OPTS_SPEC" | git rev-parse --parseopt -- "$@" || echo exit $?)"
 
@@ -29,6 +32,8 @@ dry_run=
 remote=
 upstream=
 force=
+action=
+action_desc=
 while :
 do
     case $1 in
@@ -50,6 +55,18 @@ do
         force=+ ;;
     --no-force)
         force= ;;
+    -r)
+        action=rebase
+        action_desc="rebase HEAD onto"
+        ;;
+    -c)
+        action=checkout
+        action_desc="checkout"
+        ;;
+    -p)
+        action=cherry-pick
+        action_desc="cherry-pick"
+        ;;
     --)
         shift ; break ;;
     *)
@@ -82,6 +99,10 @@ if [ $# != 0 ]; then
 fi
 
 [ $# != 0 ] && die "Too many arguments"
+
+if [ -n "$action" -a "$patchset" == "*" ]; then
+    die "Cannot perform an action when fetching multiple patch sets"
+fi
 
 if [ -n "$branch" ]; then
     if [ -z "$remote" ]; then
@@ -134,5 +155,13 @@ if [ -n "$branch" -a -n "$upstream" ]; then
         else
             git branch $verbosity "--set-upstream-to=$upstream" "$branch" || warn "Cannot set upstream for $branch"
         fi
+    fi
+fi
+
+if [ -n "$action" ]; then
+    if [ -n "$dry_run" ]; then
+        echo "Would $action_desc ${branch:-FETCH_HEAD}"
+    else
+        git "$action" "${branch:-FETCH_HEAD}"
     fi
 fi
