@@ -168,3 +168,6 @@ checkout it:
     From ssh://gerrit.example.com:29418/project
      * [new ref]         refs/changes/34/1234/3 -> change
     Switched to branch 'change'
+
+The rebase action will trigger an interactive rebase, which is useful to remove
+any previous patch set when rebeasing onto a new one.

@@ -56,7 +56,7 @@ do
     --no-force)
         force= ;;
     -r)
-        action=rebase
+        action="rebase -i"
         action_desc="rebase HEAD onto"
         ;;
     -c)
@@ -162,6 +162,6 @@ if [ -n "$action" ]; then
     if [ -n "$dry_run" ]; then
         echo "Would $action_desc ${branch:-FETCH_HEAD}"
     else
-        git "$action" "${branch:-FETCH_HEAD}"
+        git $action "${branch:-FETCH_HEAD}"
     fi
 fi
