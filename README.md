@@ -23,12 +23,14 @@ commits.
 
 ## Installation
 
-Download the scripts in `bin` directory into a directory in your `PATH`
-environment variable (such as `/usr/local/bin` to install for all users).
+To install for all users, download the repository and run `install.sh` with
+root permissions. This will copy the executables to `/usr/local/bin` and the
+Bash completion script to `/etc/bash_completion.d`.
 
-To set up auto-completion of arguments in Bash, download the script
+Otherwise, download the scripts in `bin` directory into a directory in your
+`PATH` environment variable (such as `$HOME/bin`) and, to set up
+auto-completion of arguments in Bash, download the script
 `etc/bash_completion.d/git-to-from-review` and source at Bash startup.
-To install for all users, simply place it inside `/etc/bash_completion.d`.
 
 ## Usage
 
