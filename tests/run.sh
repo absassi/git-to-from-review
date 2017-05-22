@@ -1,55 +1,79 @@
 #!/bin/bash
+# shellcheck disable=SC1090,SC2154
 
 set -e
 
-testdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-projdir="$(cd $testdir && cd .. && pwd)"
-batsdir="$testdir/.bats"
-bats="$testdir/.bats/bin/bats"
-logfile="$testdir/.bats.log"
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
-command_exists() {
+command-exists() {
   # which ignores previous aliases but is not portable
   # command does not ignore aliases, but is built in
   # so it's better to try to check first with which and fallback to command
   which "$1" &>/dev/null || command -v "$1" &>/dev/null
 }
 
-install_bats() {
+check-dependencies() {
+  for i in "${!deps[@]}"; do
+    if ! command-exists "${deps[$i]}"; then
+      echo -e "- Command '${deps[$i]}' not found." 1>&2
+      echo -e "\nPlease check %s" "${deps_instructions[$i]}" 1>&2
+      exit 1
+    else
+      echo "- Command '${deps[$i]}' is available" 1>&2
+    fi
+  done
+}
+
+install-bats() {
   if [ -f "$bats" ]; then
-    echo "Bats is already installed locally"
+    echo "- Bats is installed locally"
   else
-    echo "Installing Bats, the Automated Testing System locally..."
-    git clone https://github.com/sstephenson/bats.git $batsdir
+    echo "- Installing Bats, the Automated Testing System locally..."
+    git clone https://github.com/sstephenson/bats.git "$batsdir"
   fi
 }
 
-run_tests() {
-  echo "Ensure Bats..."
-  install_bats
+install-helpers() {
+  for helper in "${helpers[@]}"; do
+    if [ -f "$helpersdir/bats-$helper/load.bash" ]; then
+      echo "- Helper '$helper' already installed locally"
+    else
+      echo "- Installing helper '$helper'..."
+      git clone "https://github.com/ztombol/bats-$helper" "$helpersdir/bats-$helper"
+    fi
+  done
+}
+
+run-tests() {
+  echo "Checking dependencies..." 1>&2
+  install-bats
+  install-helpers
+  check-dependencies
 
   # Clear logs
-  echo "" > $logfile  # clear logs
+  echo "" > "$logfile"  # clear logs
 
-  printf "\nRunning the test suite...\n"
-  $bats $testdir
+  echo -e "Running the test suite...\n" 1>&2
+
+  $bats "$testdir"
 
   # Print logs
-  local logs=$(cat $logfile)
+  local logs
+  logs=$(cat "$logfile")
   if [ -n "$logs" ]; then
-    printf "\n\nExecution logs:\n"
-    echo "$logs"
-    echo ""
+    echo -e "\nExecution logs:\n" 1>&2
+    echo -e "$logs\n"
   fi
 }
 
-run_tests
+run-tests
 
 # Cleanup
-unset testdir
-unset batsdir
-unset logfile
-unset bats
-unset -f run_tests
-unset -f install_bats
-unset -f command_exists
+clear-config
+unset -f clear-config
+unset -f command-exists
+unset -f check-dependencies
+unset -f install-bats
+unset -f install-helpers
+unset -f load-helpers
+unset -f run-tests

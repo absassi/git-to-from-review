@@ -1,5 +1,6 @@
 tests/.bats
 tests/.bats.log
+tests/.helper-libs
 
 # Created by https://www.gitignore.io/api/linux
 

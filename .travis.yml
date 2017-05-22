@@ -1,6 +1,24 @@
-language: python  # just pick one, there is no bash
-install: ""       # nothing to install, run script does everything
-script: tests/run.sh
+---
+language: python      # to use coala (https://coala.io/)
+python: "3.6"
+
+addons:
+  apt:
+    sources:
+      - debian-sid    # Grab ShellCheck from the Debian repo
+    packages:
+      - shellcheck
+      - jq
+
 cache:
+  pip: true
   directories:
-  - tests/.bats
+    - tests/.bats
+    - tests/.helper-libs
+
+install:
+  - pip install -r test-requirements.txt
+
+script:
+  - coala --non-interactive
+  - tests/run.sh
