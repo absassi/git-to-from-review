@@ -1,0 +1,6 @@
+language: python  # just pick one, there is no bash
+install: ""       # nothing to install, run script does everything
+script: tests/run.sh
+cache:
+  directories:
+  - tests/.bats
