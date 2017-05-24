@@ -44,6 +44,7 @@ auto-completion of arguments in Bash, download the script
         -q, --quiet           be more quiet
         -n, --dry-run         dry run
         -d, --draft           send as draft
+        -r, --reviewers ...   comma separated list of reviewers
         --remote ...          remote name
         --for ...             branch to submit for review
         -u, --set-upstream    set upstream for further patch sets
@@ -74,6 +75,33 @@ option:
     $ git to-review -d
     To ssh://gerrit.example.com:29418/project
      * [new branch]      HEAD -> refs/drafts/master
+
+#### Reviewers
+
+`to-review` supports specifying the reviewers responsible for analyzing the
+submitted change via the `-r` (or `--reviewers`) option.
+This option accepts a comma separated list of emails, reviewer aliases or
+groups.
+
+The `git config` command can be used to configure both reviewer aliases and
+groups. The following example illustrates a typical sequence of commands:
+
+    $ git config --add --local reviewers.theguy theguy@thecompany.com
+    $ git config --add --local reviewers.thegirl thegirl@thecompany.com
+    $ git config --add --local reviewers.theboss theboss@thecompany.com
+    $ git config --add --local reviewers.groups.buddies theguy,thegirl
+    $ git to-review -r buddies,theboss,theintern@thecompany.com
+
+Note that all these commands accept comma separated lists (no space should be
+used).
+
+Once configured aliases and groups can be used as many times as needed.
+In the example, the `--local` flag means that the configuration only applies to
+the current repository. Please refer to `git config` to understand the effects
+of different flags.
+
+In order to remove an alias or group, the file `config` under the `.git` folder
+inside the repository can be edited (`git config --unset` also do the job).
 
 #### Specifying branch or commit
 
