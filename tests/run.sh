@@ -5,6 +5,14 @@ set -e
 
 source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
+echo-help() {
+  echo -e "Usage: $0 [--help | --dirty]"
+  echo -e "Run the test suite\n"
+  echo -e "Options:"
+  echo -e "\t--help\tDisplay this message"
+  echo -e "\t--dirty\tDo not clear temporary directories and files"
+}
+
 command-exists() {
   # which ignores previous aliases but is not portable
   # command does not ignore aliases, but is built in
@@ -45,6 +53,11 @@ install-helpers() {
 }
 
 run-tests() {
+  if [[ "$*" == *--help* ]]; then
+    echo-help
+    exit 0
+  fi
+
   echo "Checking dependencies..." 1>&2
   install-bats
   install-helpers
@@ -64,9 +77,11 @@ run-tests() {
     echo -e "\nExecution logs:\n" 1>&2
     echo -e "$logs\n"
   fi
+
+  [[ "$*" == *--dirty* ]] && rm -rf "$tmpbase"
 }
 
-run-tests
+run-tests "$@"
 
 # Cleanup
 clear-config

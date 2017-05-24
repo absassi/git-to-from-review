@@ -1,3 +1,4 @@
+.build
 tests/.bats
 tests/.bats.log
 tests/.helper-libs

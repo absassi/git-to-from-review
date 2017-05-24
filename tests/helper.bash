@@ -9,17 +9,20 @@ log() {
 
 tmpdir="/tmp"
 origin=$(pwd)
-within-repo() {
+within-tmpdir() {
   mkdir -p "$tmpbase"
   origin=$(pwd)
   tmpdir=$(mktemp -d -p "$tmpbase")
   # shellcheck disable=SC2164
   cd "$tmpdir"
+}
+
+within-repo() {
+  within-tmpdir
   git init .
 }
 
 restore() {
-  rm -rf "$tmpdir"
   cd "$origin" || return
   unset tmpdir
   unset origin

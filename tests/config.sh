@@ -11,8 +11,8 @@ bats="$testdir/.bats/bin/bats"
 tmpbase="/tmp/$projname-tests"
 logfile="$testdir/.bats.log"
 
-deps=(jq)
-deps_instructions=(https://stedolan.github.io/jq/download/)
+deps=()               # commands that needs to be available
+deps_instructions=()  # respective urls explaining how to obtain them
 
 helpersdir="$testdir/.helper-libs"
 helpers=(support assert file)

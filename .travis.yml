@@ -8,7 +8,6 @@ addons:
       - debian-sid    # Grab ShellCheck from the Debian repo
     packages:
       - shellcheck
-      - jq
 
 cache:
   pip: true
