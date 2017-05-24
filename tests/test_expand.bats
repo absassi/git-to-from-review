@@ -72,14 +72,13 @@ with-n-reviewers() {
   assert_equal "$reviewers" u1,u2,u3,u4,u5
 }
 
-@test "expand-emails turn mixed list of reviewers/groups into list of emails" {
-  # Given a mixed list with existing users and groups
-  with-n-reviewers 9
-  git config --local --add reviewers.groups.g1 u3,u4,u5
-  git config --local --add reviewers.groups.g2 u7,u8
-  # then expand-groups should expand all the groups and leave reviewers only
-  emails=$(expand-emails u1,u2,g1,u6,g2,u9)
-  assert_equal "$emails" u1@e1,u2@e2,u3@e3,u4@e4,u5@e5,u6@e6,u7@e7,u8@e8,u9@e9
+@test "expand-emails turn list of reviewers into list of emails" {
+  # Given alist with existing reviewers
+  with-n-reviewers 4
+  # then expand-emails should expand it into an alphabetically
+  # sorted list of unique emails
+  emails=$(expand-emails u1,u4,u3,u2,u1)
+  assert_equal "$emails" u1@e1,u2@e2,u3@e3,u4@e4
 }
 
 @test "expand-emails fail with undefined reviewer" {
@@ -87,9 +86,30 @@ with-n-reviewers() {
   assert_failure
 }
 
-@test "expand-emails let expanded emails pass" {
+@test "expand-emails let already expanded emails pass" {
   with-n-reviewers 2
   run expand-emails u1,u2,u3@e3.com
   assert_success
   assert_output u1@e1,u2@e2,u3@e3.com
+}
+
+@test "expand-reviewers-string produces string to be appended to branch name" {
+  # Given a mixed list with existing users and groups
+  with-n-reviewers 8
+  git config --local --add reviewers.groups.g1 u3,u4,u5
+  git config --local --add reviewers.groups.g2 u7,u8
+  # then expand-reviewers-string should produce a gerrit-compatible string
+  run expand-reviewers-string u1,g2,u2,g1,u6,u9@e9.com
+  expected="r=u1@e1,r=u2@e2,r=u3@e3,r=u4@e4,r=u5@e5,"
+  expected+="r=u6@e6,r=u7@e7,r=u8@e8,r=u9@e9.com"
+  assert_output "$expected"
+}
+
+@test "expand-reviewers-string produces empty string on empty input" {
+  expand-reviewers-string | assert_output ""
+}
+
+@test "expand-reviewers-string fail with undefined reviewer" {
+  run expand-reviewers-string u1
+  assert_failure
 }

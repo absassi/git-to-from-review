@@ -64,12 +64,12 @@ expand-list() {
 }
 
 expand-emails() {
-  # Given a comma separated list of reviewers and groups, expand it to the
-  # emails of each individual reviewer.
+  # Given a comma separated list of reviewers, expand it considering
+  # the email of each individual reviewer.
   #
-  # Arguments:
-  #   list - comma separated list of reviewers or groups
-  # Returns: list of reviewer aliases, separated by the comma
+  # Argument: comma separated list of reviewers
+  # Returns: list of emails, separated by the comma
+  # Note: the input list may contain emails
 
   local reviewers
   local emails
@@ -78,11 +78,10 @@ expand-emails() {
 
   EMAIL_REGEX="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"
 
-  reviewers="$(expand-list "$1")"
   emails=""
 
   IFS=","
-  for name in $reviewers; do
+  for name in $1; do
     if [[ "$name" =~ $EMAIL_REGEX ]]; then
       email="$name"
     else
@@ -97,4 +96,26 @@ expand-emails() {
   done
   # Make sure the reviewers are not duplicated and join the list using commas
   echo "$emails" | tail -n +2 | uniqfy
+}
+
+expand-reviewers-string() {
+  # Given a comma separated list with a mix of reviewers alias, groups and
+  # emails, expand it into a string that is accepted by gerrit to be appended
+  # to the remote branch name.
+  #
+  # Argument: comma separated list of reviewers, groups or emails
+  # Returns: string required by gerrit
+  # See: https://gerrit-review.googlesource.com/Documentation/user-upload.html#reviewers
+  # Note: The return string does not contain the starting '%'
+
+  users=$(expand-list "$1")
+  reviewers_string=$(expand-emails "$users" | sed "s/,/,r=/g")
+
+  # Fail if expand-emails fail
+  exit_code=$?
+  [ $exit_code -ne 0 ] && return $exit_code
+
+  # if the reviewers_string is not empty, the first reviewer
+  # also should start with "r="
+  [ -n "$reviewers_string" ] && echo "r=$reviewers_string"
 }
