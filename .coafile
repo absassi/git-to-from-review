@@ -1,6 +1,26 @@
 [Default]
 log_level = ERROR
-bears = ShellCheckBear,LineLengthBears
-files = lib/*.sh,*.sh,tests/*.sh,tests/*.bash
+bears = LineLengthBear, InvalidLinkBear, SpaceConsistencyBear
+files = lib/*, tests/*.bats, tests/*.*sh, *.md  # bin/*
+max_line_length = 79
+use_spaces = true
+ignore_length_regex = https?:\/\/
+
+[Make]
+log_level = ERROR
+bears = LineLengthBear, InvalidLinkBear, SpaceConsistencyBear
+files = Makefile
+max_line_length = 79
+use_spaces = false
+ignore_length_regex = https?:\/\/
+
+[Shell]
+log_level = ERROR
+bears = ShellCheckBear
+files = lib/*, tests/*.*sh  # bin/*
 shell = bash
-max_line_length=79
+
+# [markdown]
+# log_level = ERROR
+# bears = MarkdownBear, WriteGoodLintBear, LanguageToolBear
+# files = *.md

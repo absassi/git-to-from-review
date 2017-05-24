@@ -1,6 +1,7 @@
 ---
 language: python      # to use coala (https://coala.io/)
 python: "3.6"
+node_js: "6"
 
 addons:
   apt:
@@ -11,12 +12,14 @@ addons:
 
 cache:
   pip: true
+  npm: true
   directories:
     - tests/.bats
     - tests/.helper-libs
 
 install:
-  - pip install -r test-requirements.txt
+  - pip install -r coala  # language-check
+  # - sudo npm install -g write-good remark-cli, remark-lint
 
 script:
   - coala --non-interactive
