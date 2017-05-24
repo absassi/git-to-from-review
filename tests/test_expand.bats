@@ -12,12 +12,6 @@ teardown() {
   restore
 }
 
-with-n-reviewers() {
-  for (( i = 1; i <= $1; i++ )); do
-    git config --local --add "reviewers.u$i" "u$i@e$i"
-  done
-}
-
 @test "find-reviewer-email retrieve the email of a reviewer" {
   # Given a alias is configured for a reviewer,
   git config --local --add reviewers.u1 u1@e1

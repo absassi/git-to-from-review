@@ -1,10 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC1090,SC2154
 
-set -e
-
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
-
 echo-help() {
   echo -e "Usage: $0 [--help | --dirty]"
   echo -e "Run the test suite\n"
@@ -53,10 +49,8 @@ install-helpers() {
 }
 
 run-tests() {
-  if [[ "$*" == *--help* ]]; then
-    echo-help
-    exit 0
-  fi
+  local test_cases logs exit_code
+  test_cases=($@)
 
   echo "Checking dependencies..." 1>&2
   install-bats
@@ -68,27 +62,61 @@ run-tests() {
 
   echo -e "Running the test suite...\n" 1>&2
 
-  $bats "$testdir"
+  set +e
+  [ ${#test_cases[@]} -eq 0 ] && test_cases+=($testdir)
+  $bats "${test_cases[@]}"
+  exit_code=$?
 
   # Print logs
-  local logs
   logs=$(cat "$logfile")
   if [ -n "$logs" ]; then
-    echo -e "\nExecution logs:\n" 1>&2
-    echo -e "$logs\n"
+    echo -e "\n\n===============\nExecution logs:" 1>&2
+    echo -e "$logs\n" 1>&2
   fi
 
-  [[ "$*" == *--dirty* ]] && rm -rf "$tmpbase"
+  return $exit_code
 }
 
-run-tests "$@"
+run() {
+  local args test_cases
+  args=($@)
+  test_cases=()
 
-# Cleanup
-clear-config
-unset -f clear-config
-unset -f command-exists
-unset -f check-dependencies
-unset -f install-bats
-unset -f install-helpers
-unset -f load-helpers
-unset -f run-tests
+  set globstar
+  source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+
+  for (( i = 0; i < ${#args[@]}; i++ )) do
+    key="${args[$i]}"
+    case $key in
+      -h|--help)
+        echo-help
+        return 1
+      ;;
+      -d|--dirty)
+        mkdir -p "$tmpbase"
+        touch "$tmpbase/.leave-dirty"
+      ;;
+      *)
+        test_cases+=($key)
+      ;;
+    esac
+  done
+
+  run-tests "${test_cases[@]}"
+  exit_code=$?
+
+  # Cleanup
+  clear-config
+  unset -f clear-config
+  unset -f command-exists
+  unset -f check-dependencies
+  unset -f echo-help
+  unset -f install-bats
+  unset -f install-helpers
+  unset -f load-helpers
+  unset -f run-tests
+
+  return $exit_code
+}
+
+run "$@"
