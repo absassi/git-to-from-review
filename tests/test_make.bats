@@ -15,9 +15,14 @@ teardown() {
 @test "install to different prefix" {
   # When installing to a different prefix
   run make install builddir="$tmpdir" prefix="$tmpdir"
-  # then output should contain a notice about bash_completion.d
+  # then output should contain a notice about bash_completion.d,
   assert_output --partial NOTICE
   assert_output --partial /etc/bash_completion.d
+  # the files should be concatenated in the build dir,
+  assert_file_exist "$tmpdir/git-to-review"
+  assert_file_exist "$tmpdir/git-from-review"
+  # a bin dir should be created if not exists,
+  assert_file_exist "$tmpdir/bin"
   # and the files should be generated under the given prefix
   assert_file_exist "$tmpdir/bin/git-to-review"
   assert_file_exist "$tmpdir/bin/git-from-review"

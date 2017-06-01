@@ -1,4 +1,4 @@
-[Default]
+[all]
 log_level = ERROR
 bears = LineLengthBear, InvalidLinkBear, SpaceConsistencyBear
 files = lib/*, tests/*.bats, tests/*.*sh, *.md  # bin/*
@@ -6,15 +6,11 @@ max_line_length = 79
 use_spaces = true
 ignore_length_regex = https?:\/\/
 
-[Make]
-log_level = ERROR
-bears = LineLengthBear, InvalidLinkBear, SpaceConsistencyBear
+[all.make]
 files = Makefile
-max_line_length = 79
 use_spaces = false
-ignore_length_regex = https?:\/\/
 
-[Shell]
+[shell]
 log_level = ERROR
 bears = ShellCheckBear
 files = lib/*, tests/*.*sh  # bin/*

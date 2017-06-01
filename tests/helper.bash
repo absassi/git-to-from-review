@@ -29,6 +29,8 @@ within-repo() {
   repodir=$(within-tmpdir)
   cd "$repodir"
   git init . 1>&2
+  ensure-gitconfig 1>&2
+  git add "$tmpfile" 1>&2
   echo "$repodir"
 }
 
@@ -42,8 +44,8 @@ within-repo-with-commit() {
   repodir="$(within-repo)"
   cd "$repodir"
   tmpfile=$(mktemp -p "$repodir")
-  echo "$tempfile" > "$tmpfile"
-  git add "$tmpfile" 1>&2
+  echo "123456 - ${tmpfile}" > "$tmpfile"
+  git add . 1>&2
   git commit -m "Message" 1>&2
   echo "$repodir"
 }
@@ -52,6 +54,14 @@ restore() {
   [ ! -f "$tmpbase/.leave-dirty" ] && rm -rf "$tmpbase"
   cd "$origin" || true
   unset origin tmpdir repodir installdir
+}
+
+ensure-gitconfig() {
+  git config user.email || {
+    git config user.email "you@example.com";
+    git config user.name "Your Name";
+    return 0
+  }
 }
 
 # load-helpers

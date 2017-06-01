@@ -1,4 +1,6 @@
+.venv
 .build
+tags
 tests/.bats
 tests/.bats.log
 tests/.helper-libs

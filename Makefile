@@ -29,7 +29,16 @@ $(builddir)/git-from-review: $(builddir) \
 build: $(builddir)/git-to-review $(builddir)/git-from-review
 
 install: build
-	install -D -t ${prefix}/bin $(builddir)/*
+# For some reason travis complains about ${preffix}/bin and
+# ${prefix}/bash_completion.b not existing
+# even with the -D flag passed to the install command ...
+# So let's make sure it exists!
+# (using a conditional statement before mkdir -p avoids trying to
+# recreate /bin and /etc if $prefix is not specified.
+# It not necessary, but maybe it is more polite ...)
+	@[ ! -d "${prefix}/bin" ] && mkdir -p ${prefix}/bin
+	install -D -t ${prefix}/bin $(builddir)/git-*
+	@[ ! -d "${compdir}" ] && mkdir -p ${compdir}
 	install -m 664 -D -t ${compdir} etc/bash_completion.d/*
 ifneq (${prefix},${DEFAULT_PREFIX})
 	@${TPUT} bold

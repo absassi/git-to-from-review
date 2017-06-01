@@ -18,7 +18,7 @@ cache:
     - tests/.helper-libs
 
 install:
-  - pip install -r coala  # language-check
+  - pip install "coala~=0.11.0" "coala-bears~=0.11.1"  # language-check
   # - sudo npm install -g write-good remark-cli, remark-lint
 
 script:
