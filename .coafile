@@ -1,0 +1,22 @@
+[all]
+log_level = ERROR
+bears = LineLengthBear, InvalidLinkBear, SpaceConsistencyBear
+files = lib/*, tests/*.bats, tests/*.*sh, *.md  # bin/*
+max_line_length = 79
+use_spaces = true
+ignore_length_regex = https?:\/\/
+
+[all.make]
+files = Makefile
+use_spaces = false
+
+[shell]
+log_level = ERROR
+bears = ShellCheckBear
+files = lib/*, tests/*.*sh  # bin/*
+shell = bash
+
+# [markdown]
+# log_level = ERROR
+# bears = MarkdownBear, WriteGoodLintBear, LanguageToolBear
+# files = *.md

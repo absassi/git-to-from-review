@@ -10,6 +10,7 @@ v,verbose           be more verbose
 q,quiet             be more quiet
 n,dry-run           dry run
 d,draft             send as draft
+r,reviewers=        comma separated list of reviewers
 remote=!            remote name
 for=!               branch to submit for review
 u,set-upstream      set upstream for further patch sets
@@ -32,6 +33,7 @@ mode="for"
 set_upstream=false
 force=false
 no_verify=
+reviewers=
 while :
 do
     case $1 in
@@ -43,6 +45,9 @@ do
         dry_run=-n ;;
     --no-dry-run)
         dry_run= ;;
+    -r)
+        shift
+        reviewers="$1" ;;
     --remote)
         shift
         repo="$1" ;;
@@ -160,4 +165,7 @@ else
         git branch $verbosity "--set-upstream-to=$repo/$remote_branch" "$branch_short" || die "Cannot set upstream for $branch_short"
     fi
 fi
+
+options_string=$(expand-reviewers-string "$reviewers")
+[ -n "$options_string" ] && remote_branch+="%$options_string"
 git push $verbosity $dry_run $no_verify $repo $commit:refs/$mode/$remote_branch

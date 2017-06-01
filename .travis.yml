@@ -1,0 +1,26 @@
+---
+language: python      # to use coala (https://coala.io/)
+python: "3.6"
+node_js: "6"
+
+addons:
+  apt:
+    sources:
+      - debian-sid    # Grab ShellCheck from the Debian repo
+    packages:
+      - shellcheck
+
+cache:
+  pip: true
+  npm: true
+  directories:
+    - tests/.bats
+    - tests/.helper-libs
+
+install:
+  - pip install "coala~=0.11.0" "coala-bears~=0.11.1"  # language-check
+  # - sudo npm install -g write-good remark-cli, remark-lint
+
+script:
+  - coala --non-interactive
+  - tests/run.sh
