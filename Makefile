@@ -1,11 +1,14 @@
 # Most user installed commands seems to be placed under /usr/local/bin,
 DEFAULT_PREFIX := /usr/local
 prefix ?= ${DEFAULT_PREFIX}
-compdir := /etc/bash_completion.d
-builddir := .build
+override prefix := $(patsubst %/,%,$(prefix))
+DEFAULT_COMPDIR := /etc/bash_completion.d
+compdir := ${DEFAULT_COMPDIR}
+builddir ?= .build
+override builddir := $(patsubst %/,%,$(builddir))
 ifneq (${prefix},${DEFAULT_PREFIX})
 	# Unfortunately bash_completion does not consider /usr/local/etc
-	compdir := ${prefix}${compdir}
+	compdir := ${prefix}${DEFAULT_COMPDIR}
 endif
 
 # Let's color warnings in yellow ...
@@ -36,11 +39,11 @@ install: build
 # (using a conditional statement before mkdir -p avoids trying to
 # recreate /bin and /etc if $prefix is not specified.
 # It not necessary, but maybe it is more polite ...)
-	@[ ! -d "${prefix}/bin" ] && mkdir -p ${prefix}/bin
+	@if [ ! -d "${prefix}/bin" ]; then mkdir -p ${prefix}/bin; fi
 	install -D -t ${prefix}/bin $(builddir)/git-*
-	@[ ! -d "${compdir}" ] && mkdir -p ${compdir}
+	@if [ ! -d "${compdir}" ]; then mkdir -p ${compdir}; fi
 	install -m 664 -D -t ${compdir} etc/bash_completion.d/*
-ifneq (${prefix},${DEFAULT_PREFIX})
+ifneq (${compdir},${DEFAULT_COMPDIR})
 	@${TPUT} bold
 	@${TPUT} setaf 0
 	@${TPUT} setab 3
