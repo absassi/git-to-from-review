@@ -23,14 +23,21 @@ commits.
 
 ## Installation
 
-To install for all users, download the repository and run `install.sh` with
+To install for all users, download the repository and run `make install` with
 root permissions. This will copy the executables to `/usr/local/bin` and the
 Bash completion script to `/etc/bash_completion.d`.
 
-Otherwise, download the scripts in `bin` directory into a directory in your
-`PATH` environment variable (such as `$HOME/bin`) and, to set up
-auto-completion of arguments in Bash, download the script
-`etc/bash_completion.d/git-to-from-review` and source at Bash startup.
+To install into a specific location, a parameter `prefix` can be passed,
+e.g. `make install prefix=$HOME/.local`. Note that this will not automatically
+set up Bash auto-completion, therefore it will be necessary to source the
+`$prefix/etc/bash_completion.d/git-to-from-review` script at Bash startup.
+
+To uninstall, remove `git-to-review` and `git-from-review` from
+`/usr/local/bin` or `$prefix/bin`, and `git-to-from-review` from
+`/etc/bash_completion.d` if necessary.
+
+Alternatively, for a "more manageable" installation/uninstallation process see
+[GNU Stow](https://www.gnu.org/software/stow/manual/stow.html).
 
 ## Usage
 

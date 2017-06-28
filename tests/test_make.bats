@@ -29,6 +29,15 @@ teardown() {
   assert_file_exist "$tmpdir/etc/bash_completion.d/git-to-from-review"
 }
 
+@test "accept trailing slash" {
+  # When installing to a different prefix
+  run make install prefix="$tmpdir/"
+  # and the files should be generated under the given prefix
+  assert_file_exist "$tmpdir/bin/git-to-review"
+  assert_file_exist "$tmpdir/bin/git-from-review"
+  assert_file_exist "$tmpdir/etc/bash_completion.d/git-to-from-review"
+}
+
 @test "make do not install by default" {
   # When 'install' is not passed
   make builddir="$tmpdir"
